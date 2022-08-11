@@ -19,12 +19,12 @@ const GET_TODO_LIST = gql`
 `;
 
 export default function TodoList(props) {
-  const { data, error, loading } = useQuery(GET_TODO_LIST);
+  const { data = {}, error, loading } = useQuery(GET_TODO_LIST);
 
   if (error) return <h1>Error...</h1>;
   if (loading) return <h1>loading...</h1>;
 
-  const { todos } = data;
+  const { todos = [] } = data;
   return (
     <TodoListContainer>
       {todos.map((todo) => {

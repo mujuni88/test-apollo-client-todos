@@ -18,16 +18,15 @@ const GET_CATEGORIES = gql`
 `;
 
 export default function CategoryList(props) {
-  const { data, error, loading } = useQuery(GET_CATEGORIES);
-  console.log({ data, error, loading });
+  const { data = {}, error, loading } = useQuery(GET_CATEGORIES);
 
   if (error) return <h1>Error...</h1>;
   if (loading) return <h1>loading...</h1>;
 
-  const { categories } = data;
+  const { categories = [] } = data;
   return (
     <Container>
-      {(categories ?? []).map((category) => {
+      {categories.map((category) => {
         const { id } = category;
         return <Category key={id} {...category} />;
       })}

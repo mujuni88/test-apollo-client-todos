@@ -12,7 +12,7 @@ const ADD_TODO = gql`
 
 export default function TodoForm(props) {
   const [addTodo] = useMutation(ADD_TODO);
-  const [input, setInput] = React.useState();
+  const [input, setInput] = React.useState('');
   return (
     <TodoFormContainer>
       <h1>Todos</h1>
@@ -20,10 +20,10 @@ export default function TodoForm(props) {
         onSubmit={e => {
           e.preventDefault();
           addTodo({ variables: { text: input } });
-          input.value = "";
+          setInput('')
         }}
       >
-        <input onChange={e => setInput(e.target.value)} />
+        <input value={input} onChange={e => setInput(e.target.value)} />
         <button>Add</button>
       </StyledForm>
     </TodoFormContainer>

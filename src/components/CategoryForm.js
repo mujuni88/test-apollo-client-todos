@@ -12,7 +12,8 @@ const ADD_CATEGORY = gql`
 
 export default function CategoryForm(props) {
   const [addCategory] = useMutation(ADD_CATEGORY);
-  const [input, setInput] = React.useState();
+  const [input, setInput] = React.useState('');
+
   return (
     <Container>
       <h1>Categories</h1>
@@ -20,10 +21,10 @@ export default function CategoryForm(props) {
         onSubmit={(e) => {
           e.preventDefault();
           addCategory({ variables: { label: input } });
-          e.target.value = "";
+          setInput('')
         }}
       >
-        <input onChange={(e) => setInput(e.target.value)} />
+        <input value={input} onChange={(e) => setInput(e.target.value)} />
         <button>Add</button>
       </StyledForm>
     </Container>

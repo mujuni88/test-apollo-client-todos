@@ -9,8 +9,49 @@ const REMOVE_CATEGORY = gql`
   }
 `;
 
+const UPDATE_CATEGORY = gql`
+  mutation UpdateCategory($input: CategoryInput!) {
+    updateCategory(input: $input) @client
+  }
+`;
 export default function Category(props) {
-  const { id, label, todos } = props;
+  const { id, label, todos = [] } = props;
+
+  const [updateCategory, { loading, error }] = useMutation(UPDATE_CATEGORY, {
+    update: (cache, { data }) => {
+      console.log("UPDATE", data)
+      // TODO update todos
+      // Add category in the todos returned
+
+      // Loop through the todos returned and add the category id
+      const todo = data.updateCategory.todos[0]
+      /*       cache.modify({
+              id: cache.identify(todo),
+              fields: {
+                categories: (prev, { readField }) => {
+                  console.log({ prev })
+                  return prev;
+                }
+              }
+            }) */
+      cache.modify({
+        id: `Category:1`,
+        fields: {
+          todos: (prev, { readField }) => {
+            console.log({ prev })
+            return prev;
+          }
+        }
+      })
+    }
+  });
+
+  const addTodo = () => {
+    const input = { id, todos: [{ id: 2, __typename: 'Todo' }, { id: 3, __typename: 'Todo' }] };
+    updateCategory({ variables: { input } })
+  }
+
+  if (error) { console.error(error) }
 
   const [removeCategory] = useMutation(REMOVE_CATEGORY, {
     variables: {
@@ -30,14 +71,14 @@ export default function Category(props) {
       <ListContainer>
         <Header>
           <h3>Todos</h3>
-          <button>+ Add</button>
+          <button disabled={loading} onClick={addTodo}> + Add</button>
         </Header>
         {todos.map((todo) => {
           const { id } = todo;
           return <Todo key={id} {...todo} />;
         })}
       </ListContainer>
-    </Wrapper>
+    </Wrapper >
   );
 }
 

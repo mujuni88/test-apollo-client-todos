@@ -16,7 +16,7 @@ const TOGGLE_TODO = gql`
 `;
 
 export default function Todo(props) {
-  const { id, text, isCompleted, categories } = props;
+  const { id, text, isCompleted, categories = [] } = props;
 
   const [toggleTodo] = useMutation(TOGGLE_TODO, {
     variables: {

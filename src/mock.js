@@ -47,71 +47,120 @@ export const generateData = (length) => {
 export const data = {
   todos: [
     {
+      __typename: 'Todo',
       id: 1,
       text: "Music Health navigating",
       isCompleted: false,
       categories: [
         {
+          __typename: 'Category',
           id: 1,
           label: "plum"
         }
       ]
     },
     {
+      __typename: 'Todo',
       id: 2,
       text: "driver",
       isCompleted: true,
       categories: [
         {
+          __typename: 'Category',
           id: 3,
           label: "generating"
         }
       ]
     },
-    {
-      id: 3,
-      text: "ROI copy",
-      isCompleted: false,
-      categories: []
-    }
   ],
   categories: [
     {
+      __typename: 'Category',
       id: 1,
       label: "plum",
       todos: [
         {
-          id: 2,
-          text: "driver",
-          isCompleted: true
+          __typename: 'Todo',
+          id: 1,
+          text: "Music Health navigating",
+          isCompleted: false,
         }
       ]
     },
     {
+      __typename: 'Category',
+      id: 3,
+      label: "generating",
+      todos: [
+        {
+          __typename: 'Todo',
+          id: 2,
+          text: "driver",
+          isCompleted: true,
+        }]
+    },
+    {
+      __typename: 'Todo',
       id: 2,
       label: "Corporate",
       todos: [
-        {
-          id: 1,
-          text: "Music Health navigating",
-          isCompleted: false
-        },
-        {
-          id: 2,
-          text: "driver",
-          isCompleted: true
-        },
-        {
-          id: 3,
-          text: "ROI copy",
-          isCompleted: false
-        }
       ]
     },
-    {
-      id: 3,
-      label: "generating",
-      todos: []
-    }
   ]
 };
+
+export const normalizedCache = {
+  "ROOT_QUERY": {
+    "__typename": "Query",
+    "todos": [
+      {
+        "__ref": "Todo:1"
+      },
+      {
+        "__ref": "Todo:2"
+      }
+    ],
+    "categories": [
+      {
+        "__ref": "Category:1"
+      },
+      {
+        "__ref": "Category:2"
+      }
+    ]
+  },
+  "Category:1": {
+    "__typename": "Category",
+    "id": 1,
+    "label": "CATEGORY 1",
+    "todos": [
+      {
+        "__ref": "Todo:1"
+      }
+    ]
+  },
+  "Category:2": {
+    "__typename": "Category",
+    "id": 2,
+    "label": "CATEGORY 2",
+    "todos": []
+  },
+  "Todo:1": {
+    "__typename": "Todo",
+    "id": 1,
+    "text": "TODO 1",
+    "isCompleted": false,
+    "categories": [
+      {
+        "__ref": "Category:1"
+      }
+    ]
+  },
+  "Todo:2": {
+    "__typename": "Todo",
+    "id": 2,
+    "text": "TODO 2",
+    "isCompleted": false,
+    "categories": []
+  }
+}
