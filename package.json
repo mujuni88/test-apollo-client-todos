@@ -1,0 +1,36 @@
+{
+  "name": "apollo-todo-list",
+  "version": "1.0.0",
+  "description": "Using the cache in Apollo we perform some CRUD to deal with Todos within Apollo Client",
+  "keywords": [
+    "apollo",
+    "react"
+  ],
+  "main": "src/index.js",
+  "dependencies": {
+    "@apollo/client": "3.0.0-beta.25",
+    "@faker-js/faker": "7.4.0",
+    "apollo-client": "2.6.8",
+    "graphql": "14.6.0",
+    "lodash": "4.17.21",
+    "react": "16.12.0",
+    "react-dom": "16.12.0",
+    "react-scripts": "3.0.1",
+    "styled-components": "5.0.0"
+  },
+  "devDependencies": {
+    "typescript": "3.3.3"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ]
+}
