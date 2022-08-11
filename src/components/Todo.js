@@ -2,6 +2,7 @@ import React from "react";
 import { useMutation, gql } from "@apollo/client";
 import styled from "styled-components";
 import Category from "./Category";
+import { isEmpty } from "lodash";
 
 const REMOVE_TODO = gql`
   mutation RemoveTodo($id: ID!) {
@@ -20,13 +21,25 @@ export default function Todo(props) {
 
   const [toggleTodo] = useMutation(TOGGLE_TODO, {
     variables: {
-      id
-    }
+      id,
+    },
   });
 
   const [removeTodo] = useMutation(REMOVE_TODO, {
     variables: {
-      id
+      id,
+    },
+    update(cache){
+      categories.forEach((cat) => {
+        cache.modify({
+          id: cache.identify(cat),
+          fields: {
+            todos(prevTodos, {readField}){
+               return prevTodos.filter(pT => readField('id', pT) !== id)
+            }
+          }
+        })
+      })
     }
   });
   return (
@@ -34,7 +47,7 @@ export default function Todo(props) {
       <Container key={id}>
         <p
           style={{
-            textDecoration: isCompleted ? "line-through" : "none"
+            textDecoration: isCompleted ? "line-through" : "none",
           }}
         >
           {text}
@@ -47,10 +60,12 @@ export default function Todo(props) {
         </ButtonWrapper>
       </Container>
       <ListContainer>
-        <Header>
-          <h3>Categories</h3>
-          <button>+ Add</button>
-        </Header>
+        {!isEmpty(categories) && (
+          <Header>
+            <h3>Categories</h3>
+            <button>+ Add</button>
+          </Header>
+        )}
         {categories.map((category) => {
           const { id } = category;
           return <Category key={id} {...category} />;

@@ -118,6 +118,8 @@ export const normalizedCache = {
       },
       {
         "__ref": "Todo:2"
+      }, {
+        "__ref": "Todo:3"
       }
     ],
     "categories": [
@@ -136,6 +138,12 @@ export const normalizedCache = {
     "todos": [
       {
         "__ref": "Todo:1"
+      },
+      {
+        "__ref": "Todo:2"
+      },
+      {
+        "__ref": "Todo:3"
       }
     ]
   },
@@ -161,6 +169,21 @@ export const normalizedCache = {
     "id": 2,
     "text": "TODO 2",
     "isCompleted": false,
-    "categories": []
+    "categories": [
+      {
+        "__ref": "Category:1"
+      }
+    ]
+  },
+  "Todo:3": {
+    "__typename": "Todo",
+    "id": 3,
+    "text": "TODO 3",
+    "isCompleted": true,
+    "categories": [
+      {
+        "__ref": "Category:1"
+      }
+    ]
   }
 }

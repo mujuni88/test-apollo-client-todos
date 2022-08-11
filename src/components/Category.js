@@ -2,6 +2,7 @@ import React from "react";
 import { useMutation, gql } from "@apollo/client";
 import styled from "styled-components";
 import Todo from "./Todo";
+import { isEmpty } from "lodash";
 
 const REMOVE_CATEGORY = gql`
   mutation removeCategory($id: ID!) {
@@ -19,43 +20,100 @@ export default function Category(props) {
 
   const [updateCategory, { loading, error }] = useMutation(UPDATE_CATEGORY, {
     update: (cache, { data }) => {
-      console.log("UPDATE", data)
-      // TODO update todos
-      // Add category in the todos returned
+/*       const _cache = cache.extract();
+      const toBeUpdatedTodosSet = new Set();
+      const todoIdsSet = new Set(data.updateCategory.todos.map(td => td.id));
 
-      // Loop through the todos returned and add the category id
-      const todo = data.updateCategory.todos[0]
-      /*       cache.modify({
-              id: cache.identify(todo),
-              fields: {
-                categories: (prev, { readField }) => {
-                  console.log({ prev })
-                  return prev;
-                }
-              }
-            }) */
-      cache.modify({
-        id: `Category:1`,
-        fields: {
-          todos: (prev, { readField }) => {
-            console.log({ prev })
-            return prev;
-          }
+      for(const [, value] of Object.entries(_cache)){
+        if(value.__typename === 'Todo' && !todoIdsSet.has(value.id)){
+          toBeUpdatedTodosSet.add(cache.identify(value))
         }
+      }
+      
+      console.log({toBeUpdatedTodosSet});
+
+      Array.from(toBeUpdatedTodosSet).forEach((id) => {
+        cache.modify({
+          id,
+          fields: {
+            categories(prevCategories, {readField}){
+              console.log({prevCategories})            
+              return prevCategories.filter(category => readField('id', category) !== data.updateCategory.id)
+            }
+          }
+        });
       })
-    }
-  });
+    } */
+
+
+      // METHOD 2: loops through all todos in the cache
+      // CONS: hard to scale since it requires one to know the field
+      // CONS: will loop through all entries of todos in the case the field takes arguments
+
+
+      const responseTodoSet = new Set(data.updateCategory.todos.map(todo => todo.id))
+
+      // Get all the todos we need to update
+      const toBeUpdatedTodosSet = new Set();
+      cache.modify({
+        fields: {
+          todos(todos, {readField}) {
+            todos.forEach((todo) => {
+              // check if todo already added 
+              const key = cache.identify(todo);
+              if(toBeUpdatedTodosSet.has(key)) return;
+
+              // Check if todo already contains this category
+              const categories = readField('categories', todo);
+              const isCategoryInTodo = categories.some(catRef => readField('id', catRef) === data.updateCategory.id);
+
+              if(isCategoryInTodo && responseTodoSet.has(readField('id', todo))) return;
+
+              toBeUpdatedTodosSet.add(key);
+            });
+            return todos;
+          },
+        },
+      });
+      // Update categories of all the todos
+      Array.from(toBeUpdatedTodosSet).forEach((id) => {
+        cache.modify({
+          id,
+          fields: {
+            categories(prevCategories, {readField}){
+              return prevCategories.filter(category => readField('id', category) !== data.updateCategory.id)
+            }
+          }
+        });
+      })
+
+  }});
 
   const addTodo = () => {
-    const input = { id, todos: [{ id: 2, __typename: 'Todo' }, { id: 3, __typename: 'Todo' }] };
-    updateCategory({ variables: { input } })
-  }
+    const input = { id, todos: [{ id: 3, __typename: "Todo" }] };
+    updateCategory({ variables: { input } });
+  };
 
-  if (error) { console.error(error) }
+  if (error) {
+    console.error(error);
+  }
 
   const [removeCategory] = useMutation(REMOVE_CATEGORY, {
     variables: {
-      id
+      id,
+    },
+    update(cache){
+      props.todos.forEach((todo) => {
+        cache.modify({
+          id: cache.identify(todo),
+          fields: {
+            categories(prevCategories, {readField}){
+              return prevCategories.filter(cat => readField('id', cat) !== props.id)
+            }
+          }
+        })
+
+      })
     }
   });
   return (
@@ -69,16 +127,21 @@ export default function Category(props) {
         </div>
       </Container>
       <ListContainer>
-        <Header>
-          <h3>Todos</h3>
-          <button disabled={loading} onClick={addTodo}> + Add</button>
-        </Header>
+        {!isEmpty(todos) ? (
+          <Header>
+            <h3>Todos</h3>
+            <button disabled={loading} onClick={addTodo}>
+              {" "}
+              + Add
+            </button>
+          </Header>
+        ) : null}
         {todos.map((todo) => {
           const { id } = todo;
           return <Todo key={id} {...todo} />;
         })}
       </ListContainer>
-    </Wrapper >
+    </Wrapper>
   );
 }
 

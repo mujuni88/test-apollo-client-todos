@@ -1,9 +1,9 @@
 import { gql } from "@apollo/client";
-import { omit } from "lodash";
-import { data } from '../../mock'
+import { normalizedCache } from '../../mock'
 
-let nextTodoId = data.todos.length + 1;
-let nextCategoryId = data.categories.length + 1;
+const ROOT_QUERY = normalizedCache['ROOT_QUERY'];
+let nextTodoId = ROOT_QUERY['todos'].length;
+let nextCategoryId = ROOT_QUERY['categories'].length;
 
 const todosQuery = gql`
   query GetTodos {
@@ -37,7 +37,7 @@ export default {
     addTodo: (obj, { text }, { cache }) => {
       const newTodo = {
         __typename: "Todo",
-        id: nextTodoId++,
+        id: ++nextTodoId,
         text,
         isCompleted: false,
         categories: []
@@ -51,34 +51,39 @@ export default {
       return newTodo;
     },
     removeTodo: (obj, { id }, { cache }) => {
-      cache.updateQuery(({ query: todosQuery }), ({ todos }) => ({
-        todos: todos.filter(t => t.id !== id)
-      }))
-
-      return null
-    },
-    toggleTodo: (obj, { id: todoId }, { cache }) => {
-      const id = `TodoItem:${todoId}`;
-
-      const fragment = gql`
-        fragment completeTodo on TodoItem {
-          isCompleted
+      cache.modify({
+        fields: {
+          todos(prevTodos, { readField }) {
+            return prevTodos.filter(todoRef => readField('id', todoRef) !== id)
+          }
         }
-      `;
+      })
 
-      const todo = cache.readFragment({ fragment, id });
+      /*
+        // removes the item from cache entirely
+        cache.evict({ id: `Todo:${id}` })
+        cache.gc();
+      */
 
-      const data = { ...todo, isCompleted: !todo.isCompleted };
-
-      cache.writeData({ id, data });
-
-      return null;
+      return { id }
     },
-    addCategory: (obj, vars, { cache }) => {
+    toggleTodo: (obj, { id }, { cache }) => {
+      cache.modify({
+        id: `Todo:${id}`,
+        fields: {
+          isCompleted(prevIsCompleted) {
+            return !prevIsCompleted
+          }
+        }
+      })
+
+      return { id };
+    },
+    addCategory: (obj, { label }, { cache }) => {
       const newCategory = {
         __typename: "Category",
-        id: nextCategoryId++,
-        label: vars.label,
+        id: ++nextCategoryId,
+        label,
         todos: []
       };
 
@@ -89,45 +94,40 @@ export default {
       return newCategory;
     },
     removeCategory: (obj, { id }, { cache }) => {
-      const currentCategories = cache.readQuery({ query: categoriesQuery });
+      cache.modify({
+        fields: {
+          categories(prevCategories, { readField }) {
+            return prevCategories.filter(categoryRef => readField('id', categoryRef) !== id)
+          }
+        }
+      })
 
-      const categories = currentCategories.categories.filter((category) => {
-        return category.id !== id;
-      });
+      /*
+        // removes the item from cache entirely
+        cache.evict({ id: `Category:${id}` })
+        cache.gc();
+      */
 
-      const data = {
-        categories
-      };
-
-      cache.writeData({ data });
-
-      return null;
+      return { id };
     },
     updateCategory: (obj, { input }, { cache }) => {
-      const currentCategories = cache.readQuery({ query: categoriesQuery });
+      let updatedCategory;
+      cache.updateFragment({
+        id: `Category:${input.id}`,
+        fragment: gql`
+          fragment _ on Category {
+            id
+            label
+            todos {
+              id
+            }
+          } 
+        `
+      }, (data) => {
+        updatedCategory = { ...data, ...input }
+        return updatedCategory;
+      })
 
-      const currentTodos = cache.readQuery({ query: todosQuery });
-      const newTodos = currentTodos.todos.filter(td => input.todos.some((t) => t.id === td.id))
-
-      const toUpdateCategory = currentCategories.categories.find((category) => {
-        return category.id === input.id;
-      });
-
-      const updatedCategory = {
-        ...toUpdateCategory,
-        ...omit(input, "todos"),
-        todos: toUpdateCategory.todos.concat(newTodos)
-      };
-
-      console.log({ updatedCategory })
-
-      const data = {
-        categories: currentCategories.categories.map((category) =>
-          category.id === updatedCategory.id ? updatedCategory : category
-        )
-      };
-
-      cache.writeData({ data });
       return updatedCategory;
     }
   }
