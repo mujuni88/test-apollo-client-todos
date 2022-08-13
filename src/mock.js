@@ -181,9 +181,6 @@ export const normalizedCache = {
     "text": "TODO 3",
     "isCompleted": true,
     "categories": [
-      {
-        "__ref": "Category:1"
-      }
     ]
   }
 }

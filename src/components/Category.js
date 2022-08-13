@@ -55,6 +55,7 @@ export default function Category(props) {
 
       // Get all the todos we need to update
       const toBeUpdatedTodosSet = new Set();
+      const toAddSet = new Set();
       cache.modify({
         fields: {
           todos(todos, {readField}) {
@@ -69,6 +70,8 @@ export default function Category(props) {
 
               if(isCategoryInTodo && responseTodoSet.has(readField('id', todo))) return;
 
+              if(!isCategoryInTodo) toAddSet.add(key);
+
               toBeUpdatedTodosSet.add(key);
             });
             return todos;
@@ -80,7 +83,8 @@ export default function Category(props) {
         cache.modify({
           id,
           fields: {
-            categories(prevCategories, {readField}){
+            categories(prevCategories, {readField, toReference}){
+              if(toAddSet.has(id)) return [...prevCategories, toReference(data.updateCategory)];
               return prevCategories.filter(category => readField('id', category) !== data.updateCategory.id)
             }
           }
